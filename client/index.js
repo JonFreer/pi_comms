@@ -25,7 +25,6 @@ let state = {
     deviceName:os.hostname(),
     aes67Multicast:null,
     currentInputDevice:null,
-    // currentOuputDevice:null,
     samplerate:48000
 }
 
@@ -44,7 +43,8 @@ if(addresses.length == 0){
 }
 
 addr = addresses[0];
-monitor.networkInterface = addr;
+
+monitor.setNetworkInterface(addr);
 
 console.log('Selected',addr ,'as network interface');
 
@@ -110,10 +110,8 @@ socket.on("device_info_update",(data)=>{
     state.deviceName = data.deviceName;
     state.aes67Multicast  = data.multicastAddress;
     state.currentInputDevice = parseInt(data.currentInputDevice);
-    monitor.currentOuputDevice=parseInt(data.currentOuputDevice);
-    monitor.jitterBufferEnabled = data.jitterBufferEnabled;
-    monitor.jitterBufferSize = parseInt(data.jitterBufferSize);
 
+    monitor.setState(data.jitterBufferEnabled,parseInt(data.jitterBufferSize),addr,parseInt(data.currentOuputDevice));
 
     state.samplerate = parseInt(data.samplerate);
     console.log(data)
@@ -126,9 +124,8 @@ socket.on("device_info_update",(data)=>{
 })
 
 socket.on("streams_data_update",(data)=>{
-
-    monitor.setupStreams(data);
     console.log("Got refreshed stream data")
+    monitor.setupStreams(data);
 })
 
 function sendData(){
