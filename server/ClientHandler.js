@@ -7,6 +7,8 @@ const { threadId } = require('worker_threads');
 
 module.exports = class ClientHandler {
 
+    static roomState={};
+    
     static clients = {};
     static socketIO;
     static start(sendDeviceInfo) {
@@ -63,9 +65,12 @@ module.exports = class ClientHandler {
         const that = this;
         const json = [];
         Object.keys(this.clients).forEach(function(key) {
-            console.log(that.clients)
-            console.log(that.clients[key])
-            json.push(that.clients[key].toStreamJSON())
+
+            if(that.clients[key].outputStreamOpen){
+                console.log(that.clients)
+                console.log(that.clients[key])
+                json.push(that.clients[key].toStreamJSON())
+            }
         })
         console.log(json)
         this.socketIO.emit("streams_data_update",json)

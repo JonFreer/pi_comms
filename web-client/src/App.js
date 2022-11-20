@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Clients from './Components/Clients'
+import Rooms from './Components/Rooms';
 const socket = io("localhost:4000");
 
 function App() {
@@ -41,12 +42,14 @@ function App() {
   return (
     <div>
     <Clients state={state} socket={socket}></Clients>
-
-      <p>Connected: { '' + isConnected }</p>
+    <Rooms></Rooms>
+      {/* <p>Connected: { '' + isConnected }</p>
       <p>Last pong: { lastPong || '-' }</p>
-      <Button onClick={ sendPing }>Send ping</Button>
+      <Button onClick={ sendPing }>Send ping</Button> */}
     </div>
   );
 }
+
+
 
 export default App;

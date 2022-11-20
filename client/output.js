@@ -71,19 +71,17 @@ class OutputManager{
         }
     }
 
-    static setState(jitterBufferEnabled,jitterBufferSize,networkInterface,currentOuputDevice){
+    static setState(jitterBufferEnabled,jitterBufferSize,currentOuputDevice){
         let updateNeeded = false;
         if(
             this.jitterBufferEnabled!=jitterBufferEnabled ||
             this.jitterBufferSize != jitterBufferSize ||
-            this.networkInterface != networkInterface ||
             this.currentOuputDevice != currentOuputDevice){
                 updateNeeded = true;
         }
 
         this.jitterBufferEnabled = jitterBufferEnabled;
         this.jitterBufferSize = jitterBufferSize;
-        this.networkInterface = networkInterface;
         this.currentOuputDevice = currentOuputDevice;
         
 
@@ -121,12 +119,12 @@ class Stream{
         //other constants
         const bufferSize = 1024;
         const jitterBufferSize = OutputManager.jitterBufferEnabled ? OutputManager.jitterBufferSize : 0;
-
         //set up constants for lates use
         const samplesPerPacket = Math.round((this.data.samplerate / 1000) * this.data.ptime);
         const bytesPerSample = (this.data.codec == 'L24' ? 3 : 2);
         const pcmDataSize = (samplesPerPacket * bytesPerSample * this.data.channels);
         const packetSize = pcmDataSize + 12;
+
         const pcmL16out = Buffer.alloc(samplesPerPacket * 4 * bufferSize);
 
         //vars
