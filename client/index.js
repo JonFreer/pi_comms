@@ -1,8 +1,14 @@
 const io = require('socket.io-client');
 const os = require('os');
-const socket = io("http://localhost:4001");
+
+const ip = "192.168.1.36"
+
+const socket = io("http://"+ip+":4001");
 const sender = require('./aes67_sender');
-const monitor = require('./aes_monitor');
+
+const monitor = require('./output').OutputManager;
+// import {OutputManager as monitor} from './output';
+
 const { RtAudio, RtAudioFormat, RtAudioApi } = require('audify');
 const { Console } = require('console');
 
@@ -19,7 +25,7 @@ let state = {
     deviceName:os.hostname(),
     aes67Multicast:null,
     currentInputDevice:null,
-    currentOuputDevice:null,
+    // currentOuputDevice:null,
     samplerate:48000
 }
 
@@ -38,6 +44,8 @@ if(addresses.length == 0){
 }
 
 addr = addresses[0];
+monitor.networkInterface = addr;
+
 console.log('Selected',addr ,'as network interface');
 
 state.aes67Multicast = '239.69.' + addr.split('.').splice(2).join('.');
@@ -66,7 +74,7 @@ let audioDevices = rtAudio.getDevices();
 
 console.log(audioDevices)
 state.currentInputDevice = rtAudio.getDefaultInputDevice();
-state.currentOuputDevice = rtAudio.getDefaultOutputDevice();
+monitor.currentOuputDevice = rtAudio.getDefaultOutputDevice();
 
 let inputDevices = [];
 let outputDevices = [];
@@ -102,7 +110,11 @@ socket.on("device_info_update",(data)=>{
     state.deviceName = data.deviceName;
     state.aes67Multicast  = data.multicastAddress;
     state.currentInputDevice = parseInt(data.currentInputDevice);
-    state.currentOuputDevice=parseInt(data.currentOuputDevice);
+    monitor.currentOuputDevice=parseInt(data.currentOuputDevice);
+    monitor.jitterBufferEnabled = data.jitterBufferEnabled;
+    monitor.jitterBufferSize = parseInt(data.jitterBufferSize);
+
+
     state.samplerate = parseInt(data.samplerate);
     console.log(data)
     sendData();
@@ -128,12 +140,14 @@ function sendData(){
         "outputStreamOpen":sender.getStreamStatus(),
         "multicastAddress":state.aes67Multicast,
         "currentInputDevice":state.currentInputDevice,
-        "currentOuputDevice":state.currentOuputDevice,
+        "currentOuputDevice":monitor.currentOuputDevice,
         "deviceName":state.deviceName,
         "hostName":os.hostname(),
         'samplerate':state.samplerate,
         'inputChannels':audioDevices[state.currentInputDevice].inputChannels,
-        'address':addr
+        'address':addr,
+        'jitterBufferSize':monitor.jitterBufferSize,
+        'jitterBufferEnabled':monitor.jitterBufferEnabled
     });
 }
 
