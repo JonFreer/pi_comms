@@ -7,32 +7,34 @@ function Clients(props) {
 
     const [settingsIndex, setSettingsIndex] = useState(-1);
 
-  
+    
 
-    if(props.state==null){
+    if(props.state == null || props.state.clients==null){
         return <div></div>
     }
 
+    const clients = props.state.clients;
+
     if(settingsIndex != -1){
-        return <ClientSettings state={props.state} index={settingsIndex} socket={props.socket} closeCallback={()=>{setSettingsIndex(-1)}}></ClientSettings>
+        return <ClientSettings state={clients} index={settingsIndex} socket={props.socket} closeCallback={()=>{setSettingsIndex(-1)}}></ClientSettings>
     }
 
     let tableRows = [];
-    for(let i = 0; i < props.state.length; i++){
+    for(let i = 0; i < clients.length; i++){
         tableRows.push(
             <tr key={i}>
-            <td>{props.state[i].name}</td>
-            <td>{props.state[i].address}</td>
-            <td>{props.state[i].multicastAddress}</td>
+            <td>{clients[i].name}</td>
+            <td>{clients[i].address}</td>
+            <td>{clients[i].multicastAddress}</td>
             <td></td>
             <td></td>
-            <td>{props.state[i].outputStreamOpen?"Up":"Down"} <Button onClick={()=>setSettingsIndex({i})} className="float-end">Edit</Button> </td>
+            <td>{clients[i].outputStreamOpen?"Up":"Down"} <Button onClick={()=>setSettingsIndex({i})} className="float-end">Edit</Button> </td>
           </tr>
         )
     }
 
     return <div style={{margin:"20px"}}>
-        <h2>Clients <Badge>{props.state.length}</Badge></h2>
+        <h2>Clients <Badge>{clients.length}</Badge></h2>
         <Table striped bordered hover>
       <thead>
 

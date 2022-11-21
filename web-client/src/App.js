@@ -6,7 +6,8 @@ import io from 'socket.io-client';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Clients from './Components/Clients'
 import Rooms from './Components/Rooms';
-const socket = io("localhost:4000");
+
+const socket = io(window.location.hostname+":4000");
 
 function App() {
   const [isConnected, setIsConnected] = useState(socket.connected);
@@ -42,7 +43,7 @@ function App() {
   return (
     <div>
     <Clients state={state} socket={socket}></Clients>
-    <Rooms></Rooms>
+    <Rooms state={state} socket={socket}></Rooms>
       {/* <p>Connected: { '' + isConnected }</p>
       <p>Last pong: { lastPong || '-' }</p>
       <Button onClick={ sendPing }>Send ping</Button> */}

@@ -1,7 +1,8 @@
-
+// const clientHandler = require("./ClientHandler");
 
 module.exports = class Client{
 
+    clinetID;
     socket;
     inputDevices;
     outputDevices;
@@ -18,17 +19,21 @@ module.exports = class Client{
     //callbacks
     sendDeviceInfo; 
     updateStreams;
+    ClientHandler;
 
-    constructor(socket,sendDeviceInfo,updateStreams){
+    constructor(socket,sendDeviceInfo,updateStreams,ClientHandler){
         this.sendDeviceInfo = sendDeviceInfo;
         this.updateStreams = updateStreams;
         this.socket = socket;
+        this.ClientHandler = ClientHandler;
         // this.name = socket.id;
         // this.address = socket.handshake.address;
         console.log(`AudioClient: ${socket.id} just connected!`);
 
         this.socket.on("device_info",(device_info)=>{
             console.log(device_info)
+
+            this.clientID = device_info.clientID;
             this.address = device_info.address;
             this.inputDevices = device_info.inputDevices;
             this.outputDevices = device_info.outputDevices;
@@ -42,7 +47,8 @@ module.exports = class Client{
             this.inputChannels = device_info.inputChannels
             sendDeviceInfo();
             updateStreams();
-
+            // console.log(ClientHandler)
+            ClientHandler.updateHistory()
         })
 
         console.log("Created new client");
@@ -50,6 +56,7 @@ module.exports = class Client{
 
     toJSON(){
         return {
+            "clientID":this.clientID,
             "socketID":this.socket.id,
             "inputDevices":this.inputDevices,
             "outputDevices":this.outputDevices,

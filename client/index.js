@@ -23,46 +23,6 @@ const socket = io("http://"+args.address+":4001");
 
 console.log("Running Client")
 
-// let interfaces = os.networkInterfaces();
-// let addr;
-// let interfaceNames = Object.keys(interfaces);
-// // let addresses = [];
-// let streamsData = [];
-
-
-// let deviceName = os.hostname();
-
-// let state = {
-//     deviceName:os.hostname(),
-//     aes67Multicast:null,
-//     currentInputDevice:null,
-//     samplerate:48000
-// }
-
-// for(let i = 0; i < interfaceNames.length; i++){
-//     let interface = interfaces[interfaceNames[i]];
-//     for(let j = 0; j < interface.length; j++){
-//         if(interface[j].family == 'IPv4' && interface[j].address != '127.0.0.1'){
-//             addresses.push(interface[j].address);
-//         }
-//     }
-// }
-
-// if(addresses.length == 0){
-//     console.error('No network interface found!');
-//     process.exit();
-// }
-
-
-// addr = addresses[0];
-
-// monitor.setNetworkInterface(addr);
-
-// console.log('Selected',addr ,'as network interface');
-
-// state.aes67Multicast = '239.69.' + addr.split('.').splice(2).join('.');
-// console.log('Selected ' +state.aes67Multicast + ' as RTP multicast address.')
-
 //Set up socket connection
 socket.on('connect',()=>{
     console.log("Connected to Socket");
@@ -74,38 +34,6 @@ socket.on('disconnect',()=>{
     // sender.stop();
 });
 
-
-//Set up audio sender
-// Can also configure api
-// const rtAudio = new RtAudio();
-// console.log('Selected',rtAudio.getApi(),'as audio api');
-
-//list audio devices
-
-// let audioDevices = rtAudio.getDevices();
-
-// console.log(audioDevices)
-// state.currentInputDevice = rtAudio.getDefaultInputDevice();
-// monitor.currentOuputDevice = rtAudio.getDefaultOutputDevice();
-
-// let inputDevices = [];
-// let outputDevices = [];
-
-// for(let i = 0; i < audioDevices.length; i++){
-//     let device = audioDevices[i];
-    
-//     if(device.inputChannels > 0){
-//         inputDevices.push({"deviceID":i,"deviceName":device.name,"deviceInputChannels":device.inputChannels})
-//         console.log(i, device.name, device.inputChannels);
-//     }
-//     if(device.outputChannels > 0){
-//         outputDevices.push({"deviceID":i,"deviceName":device.name,"deviceOutputChannels":device.outputChannels})
-//     }
-// }
-
-
-
-// socket.emit("device_info",{"inputDevices":inputDevices});
 sendData();
 
 socket.on('get_device_info',()=>{
@@ -148,6 +76,7 @@ socket.on("streams_data_update",(data)=>{
 function sendData(){
     socket.emit("device_info",
     {
+        "clientID":stateManager.clientID,
         "inputDevices":stateManager.inputDevices,
         "outputDevices":stateManager.outputDevices,
         "outputStreamOpen":Input.streamOpen,
