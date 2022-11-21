@@ -14,9 +14,10 @@ module.exports = class Input {
     static name;
     static samplerate;
     static audioChannels = 0;
+    static ptpMaster;
 
     static start() {
-        let audioDevices = rtAudio.getDevices();
+        let audioDevices = this.rtAudio.getDevices();
         let selectedDevice = audioDevices[this.inputDevice];
         // let audioChannels;
         let that = this;
@@ -36,7 +37,7 @@ module.exports = class Input {
         }
 
         const ptime = 1;
-        const fpp = (samplerate / 1000) * ptime;
+        const fpp = (this.samplerate / 1000) * ptime;
         const encoding = 'L24';
         const sessID = Math.round(Date.now() / 1000);
         const sessVersion = sessID;
@@ -51,28 +52,27 @@ module.exports = class Input {
         let count = 0;
         let correctTimestamp = true;
     
-        console.log(audioDevice, this.audioChannels, this.name)
+        console.log(this.inputDevice, this.audioChannels, this.name, this.samplerate)
     
         console.log('Opening audio stream.');
-        this.rtAudio.openStream(null, { deviceId: parseInt(audioDevice), nChannels: this.audioChannels, firstChannel: 0 }, RtAudioFormat.RTAUDIO_SINT16, samplerate, fpp, name, pcm => rtpSend(pcm), null);//fpp//,RtAudioStreamFlags.RTAUDIO_MINIMIZE_LATENCY);
+        this.rtAudio.openStream(null, { deviceId: parseInt(this.inputDevice), nChannels: this.audioChannels, firstChannel: 0 }, RtAudioFormat.RTAUDIO_SINT16, this.samplerate, fpp, this.name, pcm => rtpSend(pcm), null);//fpp//,RtAudioStreamFlags.RTAUDIO_MINIMIZE_LATENCY);
         console.log('Trying to sync to PTP master.');
     
 
 
         //ptp sync timeout
         setTimeout(function () {
-            if (!this.ptpMaster) {
+            if (!that.ptpMaster) {
                 console.error('Could not sync to PTP master. Aborting.');
-                // process.exit();
-                this.streamOpen = false;
+                that.streamOpen = false;
+                //TODO::Close stream
             }
         }, 10000);
 
         //init PTP client
-        this.ptpv2.init(this.address, 0, function () {
-            console.log("init")
-            that.ptpMaster = that.ptpv2.ptp_master();
-            console.log('Synced to', ptpMaster, 'successfully');
+        ptpv2.init(this.address, 0, function () {
+            that.ptpMaster = ptpv2.ptp_master();
+            console.log('Synced to', that.ptpMaster, 'successfully');
 
             //start audio and sdp
             console.log('Starting SAP annoucements and audio stream.');
@@ -99,25 +99,23 @@ module.exports = class Input {
             rtpHeader.writeUInt32BE(ssrc, 8);
 
             let rtpBuffer = Buffer.concat([rtpHeader, l24]);
-
             // timestamp correction stuff
             if (correctTimestamp) {
                 correctTimestamp = false;
 
                 let ptpTime = ptpv2.ptp_time();
-                let timestampRTP = ((ptpTime[0] * samplerate) + Math.round((ptpTime[1] * samplerate) / 1000000000)) % 0x100000000;
+                let timestampRTP = ((ptpTime[0] * that.samplerate) + Math.round((ptpTime[1] * that.samplerate) / 1000000000)) % 0x100000000;
                 timestampCalc = Math.floor(timestampRTP / fpp) * fpp;
             }
 
             //write timestamp
             rtpBuffer.writeUInt32BE(timestampCalc, 4);
-
             //send RTP packet
-            that.client.send(rtpBuffer, 5004, aes67Multicast);
+            that.client.send(rtpBuffer, 5004, that.aes67Multicast);
 
             //timestamp average stuff
             let ptpTime = ptpv2.ptp_time();
-            let timestampRTP = ((ptpTime[0] * samplerate) + Math.round((ptpTime[1] * samplerate) / 1000000000)) % 0x100000000;
+            let timestampRTP = ((ptpTime[0] * that.samplerate) + Math.round((ptpTime[1] * that.samplerate) / 1000000000)) % 0x100000000;
             offsetSum += Math.abs(timestampRTP - timestampCalc);
             count++;
 

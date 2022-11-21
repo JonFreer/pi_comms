@@ -18,7 +18,7 @@ program.parse(process.argv);
 let args = program._optionValues;
 
 stateManager.loadState();
-
+Input.start()
 const socket = io("http://"+args.address+":4001");
 
 console.log("Running Client")
