@@ -19,19 +19,18 @@ let args = program._optionValues;
 
 stateManager.loadState();
 Input.start()
-const socket = io("http://"+args.address+":4001");
+const socket = io("http://"+program.address+":4001");
 
 console.log("Running Client")
 
 //Set up socket connection
 socket.on('connect',()=>{
     console.log("Connected to Socket");
-    // sender.init(addr,state.aes67Multicast,state.currentInputDevice,rtAudio,state.deviceName,state.samplerate);
-    // sender.start();
+
 })
 
 socket.on('disconnect',()=>{
-    // sender.stop();
+    Input.stop()
 });
 
 sendData();
@@ -56,11 +55,12 @@ socket.on("device_info_update",(data)=>{
 
     monitor.setState(data.jitterBufferEnabled,parseInt(data.jitterBufferSize),parseInt(data.currentOuputDevice));
 
-    console.log(data)
+    // console.log(data)
+
     sendData();
+
     if(updateSender){
-        // sender.init(addr,state.aes67Multicast,state.currentInputDevice,rtAudio,state.deviceName,state.samplerate);
-        // sender.restart();
+        Input.restart();
     }
 
     stateManager.saveState();

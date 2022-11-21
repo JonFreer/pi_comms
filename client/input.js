@@ -32,8 +32,9 @@ module.exports = class Input {
 
         if (!selectedDevice.sampleRates.includes(this.samplerate)) {
             console.log("Selected sample rate not compatible with device, falling back")
-            process.exit();
-            // samplerate = selectedDevice.preferredSampleRate;
+            // process.exit();
+            this.samplerate = selectedDevice.preferredSampleRate;
+            console.log("Selected sample rate ", this.samplerate)
         }
 
         const ptime = 1;
@@ -64,7 +65,7 @@ module.exports = class Input {
         setTimeout(function () {
             if (!that.ptpMaster) {
                 console.error('Could not sync to PTP master. Aborting.');
-                that.streamOpen = false;
+                that.stop();
                 //TODO::Close stream
             }
         }, 10000);
@@ -123,6 +124,19 @@ module.exports = class Input {
             seqNum = (seqNum + 1) % 0x10000;
             timestampCalc = (timestampCalc + fpp) % 0x100000000;
         }
+    }
+
+    static stop(){
+        console.log("Shutting down Sender")
+        sdp.stop();
+        this.rtAudio.closeStream();
+        this.streamOpen = false;
+    // ptpv2.close();
+    }
+
+    static restart(){
+        this.stop();
+        this.start();
     }
 
 }

@@ -127,7 +127,7 @@ ptpClientEvent.on('message', function(buffer, remote) {
 	if((flags & 0x0200) == 0x0200){
 		//two step, wait for follow_up msg for accurate t1
 		ts1 = recv_ts;
-	}else if(Date.now() - lastSync > minSyncInterval){
+	}else if(Date.now() - lastSync > minSyncInterval){ 
 		//got accurate t1 (no follow_up msg)
 		ts1 = recv_ts;
 
@@ -151,6 +151,7 @@ ptpClientGeneral.on('listening', function() {
 });
 
 ptpClientGeneral.on('message', function(buffer, remote) {
+
 	//safe timestamp for ts2
 	var recv_ts = getCorrectedTime();
 
@@ -183,6 +184,12 @@ ptpClientGeneral.on('message', function(buffer, remote) {
 		});
 
 		t2 = getCorrectedTime();
+	
+		//TODO::hacky workaround for if client and ptpmaster on same deivce
+		if(!sync){ 
+			sync = true;
+			cb();
+		}
 
 	}else if(type == 0x09 && req_seq == sequence){ //delay_rsp msg
 		//read ts2 timestamp
